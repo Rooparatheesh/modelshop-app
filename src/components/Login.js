@@ -12,7 +12,7 @@ const Login = () => {
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
-    e.preventDefault();  // Prevent form submission default behavior
+    e.preventDefault();  
     setLoading(true);
     setError(null);
 
