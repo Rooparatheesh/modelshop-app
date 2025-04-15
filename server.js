@@ -1370,15 +1370,17 @@ RETURNING pm.control_number, pm.status;
   }
 }
 
-// Control Numbers API
-app.route("/api/control-numbers")
 
-  // GET: Fetch all available control numbers
+app.route("/api/control-numbers")
   .get(async (req, res) => {
     try {
-      const result = await pool.query(
-        "SELECT DISTINCT control_number FROM part_master WHERE status != 'finished'"
-      );
+      const result = await pool.query(`
+        SELECT control_number
+        FROM part_master
+        GROUP BY control_number
+        HAVING NOT bool_and(status = 'finished')
+      `);
+
       const controlNumbers = result.rows.map(row => row.control_number);
 
       await logEvent("FETCH_CONTROL_NUMBERS", "Fetched available control numbers");
@@ -1390,6 +1392,8 @@ app.route("/api/control-numbers")
       res.status(500).json({ error: "Failed to fetch control numbers" });
     }
   })
+
+// PUT remains the same...
 
   // PUT: Update selected control number to 'finished'
   .put(async (req, res) => {
