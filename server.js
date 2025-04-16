@@ -523,7 +523,6 @@ app.post("/api/assign-menus", async (req, res) => {
   }
 });
 
-
 // POST /api/work-order
 app.post("/api/work-order", upload.single("document"), async (req, res) => {
   try {
@@ -584,7 +583,7 @@ app.post("/api/work-order", upload.single("document"), async (req, res) => {
       `Work order ${workOrderNumber} (Control #${controlNumber}) created successfully.`
     );
 
-    // Respond to frontend
+    // Respond to frontend with control number and document path
     res.json({ success: true, controlNumber, documentPath });
 
   } catch (err) {
@@ -599,7 +598,7 @@ app.get("/api/next-control-number", async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT last_value + 1 AS next_control_number 
-      FROM control_number_seq
+      FROM work_order_master_control_number_seq
     `);
     res.json({ nextControlNumber: result.rows[0].next_control_number });
   } catch (err) {
@@ -607,6 +606,7 @@ app.get("/api/next-control-number", async (req, res) => {
     res.status(500).json({ message: "Failed to fetch next control number" });
   }
 });
+
 
 
 //part 

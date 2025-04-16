@@ -66,7 +66,7 @@ function WorkOrderForm() {
   
     // Append all fields except controlNumber (it's auto-generated)
     Object.entries(formData).forEach(([key, value]) => {
-      if (key === "controlNumber") return; // 🔸 skip sending controlNumber
+      if (key === "controlNumber") return; // Skip sending controlNumber
       if (key === "document" && value) {
         formDataToSend.append("document", value);
       } else {
@@ -87,15 +87,16 @@ function WorkOrderForm() {
       const data = await response.json(); // Expect JSON now
       console.log("Work order saved:", data);
   
+      // Update formData with the generated controlNumber from the backend
       const savedFormData = {
         ...formData,
-        controlNumber: data.controlNumber, // 🔸 Get control number from backend response
+        controlNumber: data.controlNumber, // Update with control number from response
       };
   
-      // Reset the form
+      // Reset the form (clear state)
       setFormData({
         workOrderNumber: "",
-        controlNumber: "",
+        controlNumber: "", 
         projectCode: "",
         priority: "",
         groupWorkOrder: "",
@@ -107,20 +108,21 @@ function WorkOrderForm() {
         parts: [],
       });
   
+      // Optionally clear the draft from localStorage
       try {
         localStorage.removeItem("workOrderDraft");
       } catch (err) {
         console.warn("Failed to clear draft:", err);
       }
   
-      // Navigate with updated savedFormData (including auto-generated controlNumber)
+      // Navigate to the next page with updated form data (including auto-generated controlNumber)
       navigate("/part", { state: { formData: savedFormData } });
-  
     } catch (error) {
       console.error("Error saving work order:", error);
       alert("Error saving work order. Please try again.");
     }
   };
+  
   
   
   return (
@@ -147,16 +149,16 @@ function WorkOrderForm() {
                   />
                 </div>
                 <div style={{ flex: "1" }}>
-  <label>
-    Control Number <span className="text-danger">*</span>
-  </label>
-  <input
-    type="text"
-    className="form-control"
-    name="controlNumber"
-    value={formData.controlNumber || ''}
-    readOnly
-  />
+                <label>
+  Control Number <span className="text-danger">*</span>
+</label>
+<input
+  type="text"
+  className="form-control"
+  name="controlNumber"
+  value={formData.controlNumber || ''} // Display updated control number
+  readOnly
+/>
 
 
 

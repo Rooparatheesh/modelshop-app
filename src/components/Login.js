@@ -69,7 +69,7 @@ const Login = () => {
       <div className="left-side" style={{ flex: 1, backgroundColor: "white", padding: "2rem", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
         <img src="/image/tick.png" alt="Tick" style={{ width: "80px", marginBottom: "10px" }} />
         <div style={{ textAlign: "center", color: "black", marginBottom: "20px" }}>
-          <h1 style={{ fontSize: "2.5em", marginBottom: "10px" }} className="fw-bold">My-Task</h1>
+          <h1 style={{ fontSize: "2.5em", marginBottom: "10px" }} className="fw-bold">MS-FLOW</h1>
           <p style={{ fontSize: "1.5em" }}>Let's Manage Better</p>
         </div>
         <img src="/image/pi.png" alt="PI" style={{ height: "200px", marginTop: "20px" }} />
@@ -101,7 +101,7 @@ const Login = () => {
                 <input type="checkbox" id="rememberMe" />
                 <label htmlFor="rememberMe" style={{ marginLeft: "10px", color: "#6c757d" }}>Remember Me</label>
               </div>
-              <a href="/pass" className="text-decoration-none" style={{ color: "#ff7f00" }}>Forgot Password?</a>
+              <a href="/forgot-password" className="text-decoration-none" style={{ color: "#ff7f00" }}>Forgot Password?</a>
             </div>
             <div className="d-grid mt-3">
               <button type="submit" className="btn btn-primary btn-lg" style={{ backgroundColor: "#ffffff", color: "#333" }} disabled={loading}>{loading ? "Loading..." : "Sign In"}</button>
