@@ -5,7 +5,7 @@ import Swal from "sweetalert2";
 function WorkOrderForm() {
   const [formData, setFormData] = useState({
     workOrderNumber: "",
-    controlNumber: "",
+    controlNumber: "", // Initially empty
     projectCode: "",
     priority: "",
     groupWorkOrder: "",
@@ -18,23 +18,28 @@ function WorkOrderForm() {
   });
 
   const navigate = useNavigate();
+
   useEffect(() => {
+    // Fetch the next available control number when the form is loaded
     const fetchNextControlNumber = async () => {
       try {
         const response = await fetch(`${process.env.REACT_APP_API_URL}/api/next-control-number`);
         const data = await response.json();
+        
+        // Set the initial control number to `1` or the number fetched from backend
         setFormData((prev) => ({
           ...prev,
-          controlNumber: data.nextControlNumber
+          controlNumber: data.nextControlNumber, // This will initially be `1`
         }));
       } catch (err) {
-        console.error("Failed to fetch next control number:", err);
+        console.error("Error fetching next control number:", err);
+        alert("Failed to fetch the next control number.");
       }
     };
-  
+
     fetchNextControlNumber();
-  }, []);
-  
+  }, []); // This only runs once when the component mounts
+
 
   useEffect(() => {
     const savedDraft = localStorage.getItem("workOrderDraft");
@@ -60,43 +65,37 @@ function WorkOrderForm() {
       confirmButtonText: "OK",
     });
   };
-  
+
+
   const handleNext = async () => {
     const formDataToSend = new FormData();
-  
-    // Append all fields except controlNumber (it's auto-generated)
+
+    // Append all form fields to FormData except controlNumber (which is auto-generated)
     Object.entries(formData).forEach(([key, value]) => {
-      if (key === "controlNumber") return; // Skip sending controlNumber
+      if (key === "controlNumber") return; // Skip controlNumber (auto-generated)
       if (key === "document" && value) {
         formDataToSend.append("document", value);
       } else {
         formDataToSend.append(key, value);
       }
     });
-  
+
     try {
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/work-order`, {
         method: "POST",
         body: formDataToSend,
       });
-  
-      if (!response.ok) {
-        throw new Error("Failed to save work order");
-      }
-  
-      const data = await response.json(); // Expect JSON now
-      console.log("Work order saved:", data);
-  
-      // Update formData with the generated controlNumber from the backend
-      const savedFormData = {
-        ...formData,
-        controlNumber: data.controlNumber, // Update with control number from response
-      };
-  
-      // Reset the form (clear state)
+
+      if (!response.ok) throw new Error("Failed to save work order");
+
+      const data = await response.json();
+      // After saving, data.controlNumber should reflect the inserted control number (e.g., `1`)
+      const savedFormData = { ...formData, controlNumber: data.controlNumber }; // Backend control number response
+
+      // Reset the form state (excluding the controlNumber)
       setFormData({
         workOrderNumber: "",
-        controlNumber: "", 
+        controlNumber: "", // Reset controlNumber after submission
         projectCode: "",
         priority: "",
         groupWorkOrder: "",
@@ -107,23 +106,21 @@ function WorkOrderForm() {
         document: null,
         parts: [],
       });
-  
-      // Optionally clear the draft from localStorage
+
+      // Optionally clear draft from localStorage
       try {
         localStorage.removeItem("workOrderDraft");
       } catch (err) {
         console.warn("Failed to clear draft:", err);
       }
-  
-      // Navigate to the next page with updated form data (including auto-generated controlNumber)
+
+      // Navigate to the next page, passing updated form data (including the generated controlNumber)
       navigate("/part", { state: { formData: savedFormData } });
     } catch (error) {
       console.error("Error saving work order:", error);
       alert("Error saving work order. Please try again.");
     }
   };
-  
-  
   
   return (
     <section className="content">
