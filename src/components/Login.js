@@ -67,6 +67,8 @@ const Login = () => {
   return (
     <div style={{ display: "flex", height: "100vh" }}>
       <div className="left-side" style={{ flex: 1, backgroundColor: "white", padding: "2rem", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
+      <a href="https://drive.google.com/file/d/1Usi3Zzmu5_yiBgP8dhsiIdwpU7rh6z6q/view?usp=drivesdk" download>Download APK</a>
+  
         <img src="/image/tick.png" alt="Tick" style={{ width: "80px", marginBottom: "10px" }} />
         <div style={{ textAlign: "center", color: "black", marginBottom: "20px" }}>
           <h1 style={{ fontSize: "2.5em", marginBottom: "10px" }} className="fw-bold">MS-FLOW</h1>
