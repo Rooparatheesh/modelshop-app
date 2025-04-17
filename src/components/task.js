@@ -20,6 +20,7 @@ function WorkOrderForm() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    localStorage.removeItem("workOrderDraft");
     // Fetch the next available control number when the form is loaded
     const fetchNextControlNumber = async () => {
       try {
