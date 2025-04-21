@@ -59,13 +59,42 @@ const Assign = () => {
 
   return (
     <section className="content">
-      <div className="content-wrapper">
-        <div className="card-body">
+      <div className="content-wrapper" style={{ padding: "20px" }}>
+        <div
+          className="card-body"
+          style={{
+            maxWidth: "600px",
+            margin: "0 auto",
+            background: "#f8f9fa",
+            padding: "30px",
+            borderRadius: "10px",
+            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)"
+          }}
+        >
           <div className="assign-page">
-            <h3>Assign Menus to Roles</h3>
-            <div>
-              <label>Select Role:</label>
-              <select value={selectedRole} onChange={handleRoleChange}>
+            <h2 style={{ marginBottom: "20px", color: "#293b5f" }}>
+              Assign Menus to Roles
+            </h2>
+  
+            <div style={{ marginBottom: "20px" }}>
+              <label
+                htmlFor="roleSelect"
+                style={{ display: "block", marginBottom: "8px", fontWeight: "500" }}
+              >
+                Select Role:
+              </label>
+              <select
+                id="roleSelect"
+                value={selectedRole}
+                onChange={handleRoleChange}
+                style={{
+                  width: "100%",
+                  padding: "10px",
+                  fontSize: "16px",
+                  borderRadius: "5px",
+                  border: "1px solid #ccc"
+                }}
+              >
                 <option value="">-- Select Role --</option>
                 {roles.map((role) => (
                   <option key={role.role_id} value={role.role_id}>
@@ -74,17 +103,18 @@ const Assign = () => {
                 ))}
               </select>
             </div>
-
+  
             {menus.length > 0 && (
-              <div>
-                <h3>Menus:</h3>
+              <div style={{ marginBottom: "20px" }}>
+                <h4 style={{ marginBottom: "10px" }}>Menus:</h4>
                 {menus.map((menu) => (
-                  <div key={menu.menu_id}>
-                    <label>
+                  <div key={menu.menu_id} style={{ marginBottom: "8px" }}>
+                    <label style={{ display: "flex", alignItems: "center" }}>
                       <input
                         type="checkbox"
                         checked={selectedMenus.includes(menu.menu_id)}
                         onChange={() => handleCheckboxChange(menu.menu_id)}
+                        style={{ marginRight: "10px" }}
                       />
                       {menu.menu_name}
                     </label>
@@ -92,13 +122,27 @@ const Assign = () => {
                 ))}
               </div>
             )}
-
-            <button onClick={handleSubmit}>Submit</button>
+  
+            <button
+              onClick={handleSubmit}
+              style={{
+                backgroundColor: "#293b5f",
+                color: "#fff",
+                padding: "10px 20px",
+                fontSize: "16px",
+                border: "none",
+                borderRadius: "5px",
+                cursor: "pointer"
+              }}
+            >
+              Submit
+            </button>
           </div>
         </div>
       </div>
     </section>
   );
+  
 };
 
 export default Assign;
