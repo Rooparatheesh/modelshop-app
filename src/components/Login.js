@@ -74,9 +74,13 @@ const Login = () => {
           <p style={{ fontSize: "1.5em" }}>Let's Manage Better</p>
         </div>
         <img src="/image/pi.png" alt="PI" style={{ height: "200px", marginTop: "20px" }} />
-       <button
+        <p style={{ fontSize: "16px", marginBottom: "10px" }}>
+    Click the button below to download the latest version of the APK file.
+  </p>
+  <button
     onClick={() => {
-      window.location.href = "https://drive.google.com/uc?export=download&id=1Usi3Zzmu5_yiBgP8dhsiIdwpU7rh6z6q";
+      window.location.href =
+        "https://drive.google.com/uc?export=download&id=1Usi3Zzmu5_yiBgP8dhsiIdwpU7rh6z6q";
     }}
     style={{
       fontSize: "18px",
@@ -86,12 +90,12 @@ const Login = () => {
       padding: "10px 20px",
       borderRadius: "5px",
       cursor: "pointer",
-      textDecoration: "none"
+      textDecoration: "none",
     }}
   >
     Download APK
   </button>
-      </div>
+</div>
 
       <div className="right-side" style={{ flex: 1, padding: "2rem", display: "flex", justifyContent: "center", alignItems: "center" }}>
         <div className="sign-in-container" style={{ maxWidth: "400px", padding: "2rem", backgroundColor: "#293b5f", color: "white", borderRadius: "8px", boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)" }}>
