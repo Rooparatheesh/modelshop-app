@@ -67,32 +67,30 @@ const Login = () => {
   return (
     <div style={{ display: "flex", height: "100vh" }}>
       <div className="left-side" style={{ flex: 1, backgroundColor: "white", padding: "2rem", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
-      <button
-  onClick={() => {
-    window.location.href = "https://drive.google.com/uc?export=download&id=1Usi3Zzmu5_yiBgP8dhsiIdwpU7rh6z6q";
-  }}
-  style={{
-    marginBottom: "20px",
-    fontSize: "18px",
-    color: "#fff",
-    backgroundColor: "#293b5f",
-    border: "none",
-    padding: "10px 20px",
-    borderRadius: "5px",
-    cursor: "pointer",
-    textDecoration: "none"
-  }}
->
-  Download APK
-</button>
-
-  
+    
         <img src="/image/tick.png" alt="Tick" style={{ width: "80px", marginBottom: "10px" }} />
         <div style={{ textAlign: "center", color: "black", marginBottom: "20px" }}>
           <h1 style={{ fontSize: "2.5em", marginBottom: "10px" }} className="fw-bold">MS-FLOW</h1>
           <p style={{ fontSize: "1.5em" }}>Let's Manage Better</p>
         </div>
         <img src="/image/pi.png" alt="PI" style={{ height: "200px", marginTop: "20px" }} />
+       <button
+    onClick={() => {
+      window.location.href = "https://drive.google.com/uc?export=download&id=1Usi3Zzmu5_yiBgP8dhsiIdwpU7rh6z6q";
+    }}
+    style={{
+      fontSize: "18px",
+      color: "#fff",
+      backgroundColor: "#293b5f",
+      border: "none",
+      padding: "10px 20px",
+      borderRadius: "5px",
+      cursor: "pointer",
+      textDecoration: "none"
+    }}
+  >
+    Download APK
+  </button>
       </div>
 
       <div className="right-side" style={{ flex: 1, padding: "2rem", display: "flex", justifyContent: "center", alignItems: "center" }}>
@@ -110,7 +108,6 @@ const Login = () => {
   onChange={(e) => /^[a-zA-Z0-9-]*$/.test(e.target.value) && setEmployeeId(e.target.value)} 
   required 
 />
-
             </div>
             <div className="mb-3">
               <label htmlFor="password" className="form-label">Password</label>
@@ -134,6 +131,8 @@ const Login = () => {
             </div>
           </form>
         </div>
+        
+
       </div>
     </div>
   );

@@ -149,10 +149,6 @@ function WorkOrderForm() {
   value={formData.controlNumber || ''}
   readOnly
 />
-
-
-
-
                 </div>
               </div>
 
@@ -174,8 +170,6 @@ function WorkOrderForm() {
   }}
   required
 />
-
-
 
                 </div>
                 <div style={{ flex: "1" }}>
