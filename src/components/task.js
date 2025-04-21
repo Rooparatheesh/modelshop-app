@@ -20,27 +20,19 @@ function WorkOrderForm() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    localStorage.removeItem("workOrderDraft");
-    // Fetch the next available control number when the form is loaded
     const fetchNextControlNumber = async () => {
       try {
-        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/next-control-number`);
-        const data = await response.json();
-        
-        // Set the initial control number to `1` or the number fetched from backend
-        setFormData((prev) => ({
-          ...prev,
-          controlNumber: data.nextControlNumber, // This will initially be `1`
-        }));
-      } catch (err) {
-        console.error("Error fetching next control number:", err);
-        alert("Failed to fetch the next control number.");
+        const res = await fetch(`${process.env.REACT_APP_API_URL}/api/next-control-number`);
+        const data = await res.json();
+        setFormData((prev) => ({ ...prev, controlNumber: data.nextControlNumber }));
+      } catch (error) {
+        console.error("Failed to fetch next control number", error);
       }
     };
-
+  
     fetchNextControlNumber();
-  }, []); // This only runs once when the component mounts
-
+  }, []);
+  
 
   useEffect(() => {
     const savedDraft = localStorage.getItem("workOrderDraft");
@@ -154,9 +146,10 @@ function WorkOrderForm() {
   type="text"
   className="form-control"
   name="controlNumber"
-  value={formData.controlNumber || ''} // Display updated control number
+  value={formData.controlNumber || ''}
   readOnly
 />
+
 
 
 
