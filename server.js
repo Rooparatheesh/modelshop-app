@@ -7,6 +7,7 @@ require("dotenv").config();
 const multer = require("multer");
 const path = require("path");
 const bcrypt = require("bcrypt");
+const { Console } = require("console");
 
 
 
@@ -597,17 +598,20 @@ app.post("/api/work-order", upload.single("document"), async (req, res) => {
 app.get("/api/next-control-number", async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT last_value + 1 AS next_control_number 
-      FROM work_order_master_control_number_seq
+      SELECT COALESCE(MAX(control_number), 0) + 1 AS next_control_number
+    FROM work_order_master
     `);
-    res.json({ nextControlNumber: result.rows[0].next_control_number });
+  
+    const nextControlNumber = result.rows[0].next_control_number;
+  
+    console.log("Next Control Number: " + nextControlNumber);
+    res.json({ nextControlNumber });
   } catch (err) {
     console.error("Error fetching next control number:", err);
     res.status(500).json({ message: "Failed to fetch next control number" });
   }
+  
 });
-
-
 
 //part 
 app.post("/api/part", async (req, res) => {

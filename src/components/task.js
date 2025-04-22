@@ -82,6 +82,7 @@ function WorkOrderForm() {
       if (!response.ok) throw new Error("Failed to save work order");
 
       const data = await response.json();
+      console.log("data"+data);
       // After saving, data.controlNumber should reflect the inserted control number (e.g., `1`)
       const savedFormData = { ...formData, controlNumber: data.controlNumber }; // Backend control number response
 
