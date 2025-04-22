@@ -83,6 +83,7 @@ const LeaveRequest = () => {
       }
     });
   };
+
   const handleApprove = async (id) => {
     Swal.fire({
       title: "Approve Leave Request?",
@@ -105,7 +106,7 @@ const LeaveRequest = () => {
       }
     });
   };
-  
+
   const filteredLeaveRequests = leaveRequests.filter((request) =>
     request.emp_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -184,9 +185,19 @@ const LeaveRequest = () => {
       <td>{request.reason}</td>
       <td>{request.status}</td>
       <td>
-        <Button variant="success" size="sm" onClick={() => handleApprove(request.id)}>✅</Button>
-        {' '}
-        <Button variant="danger" size="sm" onClick={() => handleDelete(request.id)}>❌</Button>
+      {request.status === "Pending" ? (
+                  <>
+                    <Button variant="success" size="sm" onClick={() => handleApprove(request.id)}>
+                      ✅
+                    </Button>
+                    {' '}
+                    <Button variant="danger" size="sm" onClick={() => handleDelete(request.id)}>
+                      ❌
+                    </Button>
+                  </>
+                ) : (
+                  <span>{request.status}</span> // Show the status if approved
+                )}
       </td>
     </tr>
   ))}
