@@ -43,11 +43,34 @@ function WorkOrderForm() {
 
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
-    setFormData({
+    const newValue = type === "file" ? files[0] : value;
+  
+    const updatedFormData = {
       ...formData,
-      [name]: type === "file" ? files[0] : value,
-    });
+      [name]: newValue,
+    };
+  
+    const { workOrderDate, receivedDate, desiredCompletionDate } = updatedFormData;
+  
+    if (name === "receivedDate" && workOrderDate && new Date(newValue) < new Date(workOrderDate)) {
+      alert("Received Date must be on or after Work Order Date");
+      return;
+    }
+  
+    if (name === "desiredCompletionDate") {
+      if (workOrderDate && new Date(newValue) < new Date(workOrderDate)) {
+        alert("Desired Completion Date must be on or after Work Order Date");
+        return;
+      }
+      if (receivedDate && new Date(newValue) <= new Date(receivedDate)) {
+        alert("Desired Completion Date must be after Received Date");
+        return;
+      }
+    }
+  
+    setFormData(updatedFormData);
   };
+  
   const handleSaveDraft = () => {
     localStorage.setItem("workOrderDraft", JSON.stringify(formData));
   
@@ -240,18 +263,20 @@ function WorkOrderForm() {
                     required
                   />
                 </div>
+                
                 <div style={{ flex: "1" }}>
                   <label>
                     Received Date <span className="text-danger">*</span>
                   </label>
                   <input
-                    type="date"
-                    className="form-control"
-                    name="receivedDate"
-                    value={formData.receivedDate}
-                    onChange={handleChange}
-                    required
-                  />
+  type="date"
+  className="form-control"
+  name="receivedDate"
+  value={formData.receivedDate}
+  onChange={handleChange}
+  required
+  min={formData.workOrderDate}
+/>
                 </div>
              
 
@@ -259,14 +284,16 @@ function WorkOrderForm() {
                 <label>
                   Desired Date of Completion <span className="text-danger">*</span>
                 </label>
-                <input
-                  type="date"
-                  className="form-control"
-                  name="desiredCompletionDate"
-                  value={formData.desiredCompletionDate}
-                  onChange={handleChange}
-                  required
-                />
+                
+<input
+  type="date"
+  className="form-control"
+  name="desiredCompletionDate"
+  value={formData.desiredCompletionDate}
+  onChange={handleChange}
+  required
+  min={formData.workOrderDate}
+/>
               </div>
               </div>
 
