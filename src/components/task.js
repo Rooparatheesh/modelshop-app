@@ -284,12 +284,11 @@ function WorkOrderForm() {
                 <label>
                   Desired Date of Completion <span className="text-danger">*</span>
                 </label>
-                
-<input
-  type="date"
-  className="form-control"
-  name="desiredCompletionDate"
-  value={formData.desiredCompletionDate}
+               <input
+              type="date"
+              className="form-control"
+              name="desiredCompletionDate"
+value={formData.desiredCompletionDate}
   onChange={handleChange}
   required
   min={formData.workOrderDate}
