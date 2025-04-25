@@ -1,6 +1,5 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-const cors = require("cors");
 const { Pool } = require("pg");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
@@ -17,30 +16,24 @@ const API_URL = process.env.REACT_APP_API_URL; // Read from .env
 // Ensure PORT is defined
 const PORT = process.env.PORT || 4000;
 // Load allowed origins from .env safely
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(",")
+  : [];
 
-const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(",") : [];
-
-console.log("Allowed Origins:", allowedOrigins);
-
-// ✅ Temporarily Allow All Local Requests
-app.use((req, res, next) => {
-  const origin = req.get("Origin"); // Get request origin
-
-  if (!origin || allowedOrigins.includes(origin) || origin.startsWith("http://localhost")) {
-    res.setHeader("Access-Control-Allow-Origin", origin || "*");
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-    res.setHeader("Access-Control-Allow-Credentials", "true");
-
-    if (req.method === "OPTIONS") {
-      return res.sendStatus(200);
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl)
+    if (!origin || allowedOrigins.includes(origin) || origin.startsWith("http://localhost")) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
     }
-  } else {
-    console.error(`❌ Blocked CORS request from: ${origin}`);
-    return res.status(403).json({ error: "CORS policy does not allow this origin" });
-  }
-  next();
-});
+  },
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
+
 
 // Middleware Setup
 app.use(bodyParser.json());

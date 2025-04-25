@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 
 const ForgotPassword = () => {
   const [employeeId, setEmployeeId] = useState("");
@@ -34,14 +33,6 @@ const ForgotPassword = () => {
         confirm_password: confirmPassword,
       });
 
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_URL || "http://localhost:4000"}/forgot-password`,
-        {
-          employee_id: employeeId,
-          new_password: password,
-          confirm_password: confirmPassword,
-        }
-      );
 
       alert("✅ Password reset successful! Redirecting to login...");
       navigate("/login"); // Redirect to login page

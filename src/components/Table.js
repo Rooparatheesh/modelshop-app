@@ -20,13 +20,6 @@ const Table = () => {
  ;
  
 
- const handleUpdateEmployee = (updatedEmployee) => {
-   setEmployees((prevEmployees) =>
-     prevEmployees.map((emp) =>
-       emp.employee_id === updatedEmployee.employee_id ? { ...emp, ...updatedEmployee } : emp
-     )
-   );
- };
   const handleAddEmployee = (newEmployee) => {
     setEmployees((prevEmployees) => [...prevEmployees, newEmployee]);
   };

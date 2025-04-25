@@ -40,15 +40,16 @@ const EditEmployeeModal = ({ employee, onClose, onUpdate }) => {
     fetchData();
   }, [employee.employee_id]);
 
-  // Ensure selectedTrade updates when trades are loaded
-  useEffect(() => {
+   // Ensure selectedTrade updates when trades are loaded
+   useEffect(() => {
     if (trades.length > 0 && selectedTrade === "") {
       const assignedTrade = trades.find(trade => trade.trade_id === employee.trade_id);
       if (assignedTrade) {
         setSelectedTrade(String(assignedTrade.trade_id));
       }
     }
-  }, [trades, employee.trade_id]);
+  }, [trades, employee.trade_id, selectedTrade]); // Added selectedTrade to the dependency array
+
 
   const handleChange = (e) => {
     const { id, value } = e.target;

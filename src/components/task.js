@@ -50,7 +50,7 @@ function WorkOrderForm() {
       [name]: newValue,
     };
   
-    const { workOrderDate, receivedDate, desiredCompletionDate } = updatedFormData;
+    const { workOrderDate, receivedDate } = updatedFormData;
   
     if (name === "receivedDate" && workOrderDate && new Date(newValue) < new Date(workOrderDate)) {
       alert("Received Date must be on or after Work Order Date");

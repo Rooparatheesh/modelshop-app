@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Modal, Button, Form } from "react-bootstrap";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import axios from "axios";
 import Swal from "sweetalert2";
+import { Button } from "react-bootstrap"; // ✅ Add this
 
 
 const LeaveRequest = () => {
@@ -21,7 +21,7 @@ const LeaveRequest = () => {
     const { data } = await axios.get("/api/leaverequests");
     setLeaveRequests(data);
   };
-  const [entriesPerPage, setEntriesPerPage] = useState(10);
+  const [, setEntriesPerPage] = useState(10);
 
   const handleEntriesChange = (e) => {
     setEntriesPerPage(Number(e.target.value));
@@ -178,7 +178,7 @@ const LeaveRequest = () => {
       <td>{request.emp_id}</td>
       <td>{request.emp_name}</td>
       <td>
-        {leaveTypes.find((type) => type.id == request.leave_type)?.leave_type || "Unknown"}
+        {leaveTypes.find((type) => type.id === request.leave_type)?.leave_type || "Unknown"}
       </td>
       <td>{new Date(request.start_date).toLocaleDateString()}</td>
       <td>{new Date(request.end_date).toLocaleDateString()}</td>
