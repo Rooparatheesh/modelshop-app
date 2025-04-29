@@ -6,6 +6,8 @@ require("dotenv").config();
 const multer = require("multer");
 const path = require("path");
 const bcrypt = require("bcrypt");
+const cors = require('cors');
+
 
 
 
@@ -644,20 +646,18 @@ app.post("/api/part", async (req, res) => {
 });
 
 
+// app.get("/api/control-numberss", async (_req, res) => {
+//   try {
+//     const result = await pool.query("SELECT control_number FROM work_order_master");
+//     await logEvent("Control Numbers Fetched", "No control numbers found.");
+//     res.json(result.rows.map(row => row.control_number));
+//   } catch (error) {
+//     await logEvent("Control Number Fetch Failed", error.message);
+//     console.error("Error fetching control numbers:", error);
+//     res.status(500).json({ error: "Internal Server Error" });
+//   }
+// });
 
-app.get("/api/control-numbers", async (_req, res) => {
-  try {
-    const result = await pool.query("SELECT control_number FROM work_order_master");
-    await logEvent("Control Numbers Fetched", "No control numbers found.");
-    res.json(result.rows.map(row => row.control_number));
-  } catch (error) {
-
-    await logEvent("Control Number Fetch Failed", error.message);
-
-    console.error("Error fetching control numbers:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
 
 
 //assign task

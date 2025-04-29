@@ -315,7 +315,6 @@ const handleFinish = async () => {
   }
 };
 
-
 return (
   <section className="content">
   <div className="content-wrapper">
@@ -333,7 +332,6 @@ return (
             style={{ maxWidth: "200px" }}
             onChange={(e) => handleSearch(e.target.value)}
           />
-
           <div className="d-flex flex-wrap gap-2 align-items-center">
             {["All", "ongoing", "on hold", "completed", ].map((status) => (
               <button
