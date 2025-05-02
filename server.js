@@ -9,10 +9,6 @@ const bcrypt = require("bcrypt");
 const cors = require('cors');
 
 
-
-
-
-
 const app = express();
 const API_URL = process.env.REACT_APP_API_URL; // Read from .env
 // Ensure PORT is defined
@@ -519,10 +515,11 @@ app.post("/api/assign-menus", async (req, res) => {
   }
 });
 
-// POST /api/work-order
+
 app.post("/api/work-order", upload.single("document"), async (req, res) => {
   try {
     const {
+      controlNumber,
       workOrderNumber,
       projectCode,
       priority,
@@ -533,8 +530,9 @@ app.post("/api/work-order", upload.single("document"), async (req, res) => {
       productDescription,
     } = req.body;
 
-    // Validate required fields (exclude controlNumber)
+    // Validate required fields
     if (
+      !controlNumber ||
       !workOrderNumber ||
       !projectCode ||
       !priority ||
@@ -547,18 +545,24 @@ app.post("/api/work-order", upload.single("document"), async (req, res) => {
       return res.status(400).json({ success: false, message: "Missing required fields" });
     }
 
+    // Validate controlNumber is numeric
+    if (!/^\d+$/.test(controlNumber)) {
+      return res.status(400).json({ success: false, message: "Control Number must be numeric" });
+    }
+
     // Handle file upload
     const documentPath = req.file ? `uploads/${req.file.filename}` : null;
 
-    // Insert into DB (control_number will be auto-generated)
+    // Insert into DB
     const result = await pool.query(
       `INSERT INTO work_order_master (
-        work_order_number, project_code, priority, 
+        control_number, work_order_number, project_code, priority, 
         group_section, work_order_date, received_date, desired_completion_date, 
         product_description, doc_upload_path, created_date, created_id
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, CURRENT_TIMESTAMP, 1) 
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP, 1)
       RETURNING control_number`,
       [
+        controlNumber,
         workOrderNumber,
         projectCode,
         priority,
@@ -571,17 +575,15 @@ app.post("/api/work-order", upload.single("document"), async (req, res) => {
       ]
     );
 
-    const controlNumber = result.rows[0].control_number;
+    const insertedControlNumber = result.rows[0].control_number;
 
     // Log creation
     await logEvent(
       "Work Order Created",
-      `Work order ${workOrderNumber} (Control #${controlNumber}) created successfully.`
+      `Work order ${workOrderNumber} (Control #${insertedControlNumber}) created successfully.`
     );
 
-    // Respond to frontend with control number and document path
-    res.json({ success: true, controlNumber, documentPath });
-
+    res.json({ success: true, controlNumber: insertedControlNumber, documentPath });
   } catch (err) {
     console.error("Error saving work order:", err);
     await logEvent("Work Order Creation Failed", `Error saving work order: ${err.message}`);
@@ -589,39 +591,38 @@ app.post("/api/work-order", upload.single("document"), async (req, res) => {
   }
 });
 
-// GET /api/next-control-number
-app.get("/api/next-control-number", async (req, res) => {
-  try {
-    const result = await pool.query(`
-      SELECT COALESCE(MAX(control_number), 0) + 1 AS next_control_number
-    FROM work_order_master
-    `);
-  
-    const nextControlNumber = result.rows[0].next_control_number;
-  
-    console.log("Next Control Number: " + nextControlNumber);
-    res.json({ nextControlNumber });
-  } catch (err) {
-    console.error("Error fetching next control number:", err);
-    res.status(500).json({ message: "Failed to fetch next control number" });
-  }
-  
-});
-
-//part 
 app.post("/api/part", async (req, res) => {
   const client = await pool.connect();
   try {
     const { controlNumber, parts } = req.body;
 
+    // Validate request
     if (!controlNumber || !Array.isArray(parts) || parts.length === 0) {
       return res.status(400).json({ success: false, message: "Invalid part data" });
+    }
+
+    // Validate controlNumber is numeric
+    if (!/^\d+$/.test(controlNumber)) {
+      return res.status(400).json({ success: false, message: "Control Number must be numeric" });
+    }
+
+    // Validate controlNumber exists in work_order_master
+    const controlNumberCheck = await client.query(
+      "SELECT 1 FROM work_order_master WHERE control_number = $1",
+      [controlNumber]
+    );
+    if (controlNumberCheck.rowCount === 0) {
+      return res.status(400).json({ success: false, message: "Invalid Control Number" });
     }
 
     // Begin transaction
     await client.query("BEGIN");
 
     for (const part of parts) {
+      if (!part.partNumber || !part.description || !part.quantity) {
+        await client.query("ROLLBACK");
+        return res.status(400).json({ success: false, message: "Missing part fields" });
+      }
       await client.query(
         `INSERT INTO part_master (control_number, part_number, description, quantity, created_date, created_id) 
         VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, 1)`,
@@ -636,27 +637,26 @@ app.post("/api/part", async (req, res) => {
     await logEvent("Parts Added", `Parts added for Control #${controlNumber}`);
     res.json({ success: true });
   } catch (err) {
-    await client.query("ROLLBACK"); // Rollback transaction on error
+    await client.query("ROLLBACK");
     console.error(err);
     await logEvent("Part Addition Failed", `Error adding parts for Control #${controlNumber}: ${err.message}`);
     res.status(500).json({ success: false, message: "Error saving parts" });
   } finally {
-    client.release(); // Release the database client
+    client.release();
   }
 });
 
-
-// app.get("/api/control-numberss", async (_req, res) => {
-//   try {
-//     const result = await pool.query("SELECT control_number FROM work_order_master");
-//     await logEvent("Control Numbers Fetched", "No control numbers found.");
-//     res.json(result.rows.map(row => row.control_number));
-//   } catch (error) {
-//     await logEvent("Control Number Fetch Failed", error.message);
-//     console.error("Error fetching control numbers:", error);
-//     res.status(500).json({ error: "Internal Server Error" });
-//   }
-// });
+app.get("/api/control-numberss", async (_req, res) => {
+  try {
+     const result = await pool.query("SELECT control_number FROM work_order_master");
+    await logEvent("Control Numbers Fetched", "No control numbers found.");
+    res.json(result.rows.map(row => row.control_number));
+   } catch (error) {
+     await logEvent("Control Number Fetch Failed", error.message);
+    console.error("Error fetching control numbers:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+ }
+ });
 
 
 
