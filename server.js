@@ -9,6 +9,10 @@ const bcrypt = require("bcrypt");
 const cors = require('cors');
 
 
+
+
+
+
 const app = express();
 const API_URL = process.env.REACT_APP_API_URL; // Read from .env
 // Ensure PORT is defined
@@ -514,8 +518,6 @@ app.post("/api/assign-menus", async (req, res) => {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 });
-
-
 app.post("/api/work-order", upload.single("document"), async (req, res) => {
   try {
     const {
@@ -645,7 +647,6 @@ app.post("/api/part", async (req, res) => {
     client.release();
   }
 });
-
 app.get("/api/control-numberss", async (_req, res) => {
   try {
      const result = await pool.query("SELECT control_number FROM work_order_master");
@@ -1438,6 +1439,9 @@ app.post("/logout", async (req, res) => {
     res.status(500).json({ success: false, message: "Error logging out" });
   }
 });
+
+//flutter
+
 
 
 app.listen(PORT, "0.0.0.0", () => {
