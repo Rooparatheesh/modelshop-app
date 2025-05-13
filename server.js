@@ -1085,49 +1085,66 @@ app.delete("/api/leaverequests/:id", async (req, res) => {
       res.status(500).json({ error: "Internal Server Error" });
   }
 });
-
-//flutter
 app.post("/update-task-status", async (req, res) => {
   console.log("📥 Incoming Request:", req.body);
 
-  const { id, status } = req.body;
+  const { id, status, employee_id, assigned_by } = req.body;
 
   if (!id || !status) {
     return res.status(400).json({ success: false, message: "⚠️ Missing id or status" });
   }
 
   try {
-    // Check if the job exists
-    const checkQuery = `SELECT status FROM assign_task WHERE id = $1`;
-    const checkResult = await pool.query(checkQuery, [id]);
+    const checkQuery = `
+      SELECT status, actual_start_date 
+      FROM assign_task 
+      WHERE id = $1 
+      ${employee_id ? 'AND employee_id = $2' : ''}
+      ${assigned_by ? 'AND assigned_by = $3' : ''}
+    `;
+    
+    const queryParams = [id];
+    if (employee_id) queryParams.push(employee_id);
+    if (assigned_by) queryParams.push(assigned_by);
+
+    const checkResult = await pool.query(checkQuery, queryParams);
 
     if (checkResult.rows.length === 0) {
       return res.status(404).json({ success: false, message: "❌ Job not found" });
     }
 
-    // Handle case where status is NULL
     const currentStatus = checkResult.rows[0].status ? checkResult.rows[0].status.toLowerCase() : null;
     const newStatus = status.toLowerCase();
 
     console.log(`🔍 Current Status in DB: ${currentStatus || "NULL"}`);
 
-    // ✅ Allow updating to "Ongoing"
     if (newStatus === "ongoing") {
       if (currentStatus === "ongoing") {
         return res.status(400).json({ success: false, message: "⚠️ Task is already ongoing!" });
       }
 
-      // Update the database
-      const updateQuery = `UPDATE assign_task SET status = 'ongoing' WHERE id = $1 RETURNING status`;
+      const shouldUpdateStartDate = !checkResult.rows[0].actual_start_date;
+      
+      // REMOVED updated_at FROM THIS QUERY
+      const updateQuery = `
+        UPDATE assign_task 
+        SET 
+          status = 'ongoing'
+          ${shouldUpdateStartDate ? ', actual_start_date = NOW()' : ''}
+        WHERE id = $1
+        RETURNING status, actual_start_date
+      `;
+      
       const updateResult = await pool.query(updateQuery, [id]);
-
       const updatedStatus = updateResult.rows[0].status;
+      const updatedStartDate = updateResult.rows[0].actual_start_date;
 
       console.log("✅ Task Accepted & Status Changed to ONGOING");
       return res.json({ 
         success: true, 
         message: "✅ Task Accepted & Status Changed to ONGOING!", 
-        status: updatedStatus 
+        status: updatedStatus,
+        actual_start_date: updatedStartDate
       });
     }
 
@@ -1135,118 +1152,152 @@ app.post("/update-task-status", async (req, res) => {
 
   } catch (error) {
     console.error("❌ Error updating job status:", error);
-    res.status(500).json({ success: false, message: "🚨 Internal Server Error", error: error.message });
+    res.status(500).json({ 
+      success: false, 
+      message: "🚨 Internal Server Error", 
+      error: error.message 
+    });
   }
 });
-
-
 app.post("/update-job-status", async (req, res) => {
   console.log("📥 Incoming Request:", req.body);
 
-  const { id, status, reason } = req.body;
+  const { id, status, reason, update_hold_date } = req.body;
 
+  // Validate required fields
   if (!id || !status) {
-    return res.status(400).json({ success: false, message: "⚠️ Missing id or status" });
+    return res.status(400).json({ 
+      success: false, 
+      message: "⚠️ Missing id or status" 
+    });
   }
 
   try {
-    const checkQuery = `SELECT status FROM assign_task WHERE id = $1`;
+    // Check current status
+    const checkQuery = `
+      SELECT status, actual_end_date, on_hold_date 
+      FROM assign_task 
+      WHERE id = $1
+    `;
     const checkResult = await pool.query(checkQuery, [id]);
 
     if (checkResult.rows.length === 0) {
-      return res.status(404).json({ success: false, message: "❌ Job not found" });
+      return res.status(404).json({ 
+        success: false, 
+        message: "❌ Job not found" 
+      });
     }
 
-    const currentStatus = checkResult.rows[0].status?.toLowerCase() || null;
+    const currentStatus = checkResult.rows[0].status?.toLowerCase();
     const newStatus = status.toLowerCase();
-    console.log(`🔍 Current Status in DB: ${currentStatus || "NULL"}`);
 
-    // ONGOING
-    if (newStatus === "ongoing") {
-      if (currentStatus === "ongoing") {
-        return res.status(400).json({ success: false, message: "⚠️ Task is already ongoing!" });
-      }
-
-      const updateQuery = `UPDATE assign_task SET status = 'ongoing', reason = NULL WHERE id = $1`;
-      await pool.query(updateQuery, [id]);
-      await updatePartMasterStatuses();
-
-      console.log("✅ Task Accepted & Status Changed to ONGOING");
-      return res.json({ success: true, message: "✅ Task Accepted & Status Changed to ONGOING!" });
-    }
-
-    // COMPLETED
-    if (newStatus === "completed") {
-      if (currentStatus !== "ongoing") {
-        return res.status(400).json({
-          success: false,
-          message: `⛔ Cannot complete task. Only ONGOING tasks can be completed. Current status: ${currentStatus?.toUpperCase() || "NULL"}`,
-        });
-      }
-
-      const completedReason = "Task completed successfully";
-      const updateQuery = `UPDATE assign_task SET status = 'completed', reason = $1 WHERE id = $2`;
-      await pool.query(updateQuery, [completedReason, id]);
-      await updatePartMasterStatuses();
-
-      console.log("✅ Task marked as COMPLETED");
-      return res.json({ success: true, message: "✅ Task marked as COMPLETED", status: "completed", reason: completedReason });
-    }
-
-    // PENDING
-    if (newStatus === "pending") {
-      if (currentStatus !== "ongoing") {
-        return res.status(400).json({
-          success: false,
-          message: `⛔ Cannot set to pending. Only ONGOING tasks can be marked as pending. Current status: ${currentStatus?.toUpperCase() || "NULL"}`,
-        });
-      }
-
-      if (!reason || reason.trim() === "") {
-        return res.status(400).json({ success: false, message: "⚠️ Pending reason is required" });
-      }
-
-      const updateQuery = `UPDATE assign_task SET status = 'pending', reason = $1 WHERE id = $2`;
-      await pool.query(updateQuery, [reason, id]);
-      await updatePartMasterStatuses();
-
-      console.log("⏳ Task status changed to PENDING for approval:", reason);
-      return res.json({ success: true, message: "⏳ Task set to PENDING for approval", status: "pending", reason });
-    }
-
-    // ON HOLD
-    if (newStatus === "on hold") {
-      if (currentStatus !== "ongoing" && currentStatus !== "pending") {
-        return res.status(400).json({
-          success: false,
-          message: `⛔ Cannot hold task. Only ONGOING or PENDING tasks can be put on hold. Current status: ${currentStatus?.toUpperCase() || "NULL"}`,
-        });
-      }
-
-      if (currentStatus === "pending") {
-        const updateQuery = `UPDATE assign_task SET status = 'on hold' WHERE id = $1`;
-        await pool.query(updateQuery, [id]);
-      } else {
-        if (!reason || reason.trim() === "") {
-          return res.status(400).json({ success: false, message: "⚠️ Hold reason is required" });
+    // Handle status transitions
+    switch (newStatus) {
+      case "on hold":
+        if (currentStatus !== "ongoing" && currentStatus !== "pending") {
+          return res.status(400).json({
+            success: false,
+            message: `⛔ Only ONGOING or PENDING tasks can be put on hold. Current status: ${currentStatus?.toUpperCase() || "NULL"}`,
+          });
         }
-        const updateQuery = `UPDATE assign_task SET status = 'on hold', reason = $1 WHERE id = $2`;
-        await pool.query(updateQuery, [reason, id]);
-      }
 
-      await updatePartMasterStatuses();
-      console.log("✅ Task Approved & Status Changed to ON HOLD");
-      return res.json({ success: true, message: "✅ Task Approved & Status Changed to ON HOLD", status: "on hold" });
+        if (!reason) {
+          return res.status(400).json({ 
+            success: false, 
+            message: "⚠️ Hold reason is required" 
+          });
+        }
+
+        const updateQuery = `
+          UPDATE assign_task 
+          SET 
+            status = 'on hold',
+            hold_reason = $1,
+            on_hold_date = CURRENT_TIMESTAMP,
+            actual_end_date = NULL
+          WHERE id = $2
+          RETURNING status, on_hold_date
+        `;
+        
+        const updateResult = await pool.query(updateQuery, [reason, id]);
+        await updatePartMasterStatuses();
+
+        return res.json({ 
+          success: true, 
+          message: "✅ Task put ON HOLD",
+          status: "on hold",
+          on_hold_date: updateResult.rows[0].on_hold_date,
+          hold_reason: reason
+        });
+
+      case "completed":
+        if (currentStatus !== "ongoing") {
+          return res.status(400).json({
+            success: false,
+            message: `⛔ Cannot complete task. Only ONGOING tasks can be completed. Current status: ${currentStatus?.toUpperCase() || "NULL"}`,
+          });
+        }
+
+        const completedReason = reason || "Task completed successfully";
+        const completeQuery = `
+          UPDATE assign_task 
+          SET 
+            status = 'completed', 
+            reason = $1,
+            actual_end_date = CURRENT_TIMESTAMP,
+            on_hold_date = NULL
+          WHERE id = $2
+          RETURNING status, actual_end_date
+        `;
+        
+        const completeResult = await pool.query(completeQuery, [completedReason, id]);
+        await updatePartMasterStatuses();
+
+        return res.json({ 
+          success: true, 
+          message: "✅ Task marked as COMPLETED", 
+          status: "completed", 
+          reason: completedReason,
+          actual_end_date: completeResult.rows[0].actual_end_date
+        });
+
+      case "ongoing":
+        if (currentStatus === "ongoing") {
+          return res.status(400).json({ 
+            success: false, 
+            message: "⚠️ Task is already ongoing!" 
+          });
+        }
+
+        await pool.query(
+          `UPDATE assign_task 
+           SET status = 'ongoing', 
+              reason = NULL,
+              on_hold_date = NULL
+           WHERE id = $1`,
+          [id]
+        );
+        await updatePartMasterStatuses();
+
+        return res.json({ 
+          success: true, 
+          message: "✅ Task Accepted & Status Changed to ONGOING!" 
+        });
+
+      default:
+        return res.status(400).json({ 
+          success: false, 
+          message: "⚠️ Invalid status" 
+        });
     }
-
-    return res.status(400).json({ success: false, message: "⚠️ Invalid status update request" });
-
   } catch (error) {
     console.error("❌ Error updating job status:", error);
-    res.status(500).json({ success: false, message: "🚨 Internal Server Error", error: error.message });
+    res.status(500).json({ 
+      success: false, 
+      message: "🚨 Internal Server Error" 
+    });
   }
 });
-
 
 app.post("/forgot-password", async (req, res) => {
   const { employee_id, new_password, confirm_password } = req.body;
@@ -1391,7 +1442,7 @@ app.route("/api/control-numbers")
     }
   })
 
-// PUT remains the same...
+
 
   // PUT: Update selected control number to 'finished'
   .put(async (req, res) => {
@@ -1421,8 +1472,6 @@ app.route("/api/control-numbers")
       res.status(500).json({ error: "Failed to update status" });
     }
   });
-
-
 
 // Logout endpoint with logging
 app.post("/logout", async (req, res) => {
