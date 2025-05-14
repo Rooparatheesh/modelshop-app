@@ -7,10 +7,7 @@ const multer = require("multer");
 const path = require("path");
 const bcrypt = require("bcrypt");
 const cors = require('cors');
-
-
-
-
+const fs = require('fs').promises; // Use promises version
 
 
 const app = express();
@@ -1490,9 +1487,68 @@ app.post("/logout", async (req, res) => {
 });
 
 //flutter
+// Create a note
+app.post('/api/notes', upload.single('voice'), async (req, res) => {
+  const { employee_id, note_text, language } = req.body;
+  const voice_path = req.file ? `uploads/${req.file.filename}` : null;
 
+  try {
+    const result = await pool.query(
+      'INSERT INTO notes (employee_id, note_text, language, voice_path, created_at) VALUES ($1, $2, $3, $4, NOW()) RETURNING *',
+      [employee_id, note_text || null, language || null, voice_path]
+    );
+    res.status(201).json({ success: true, note: result.rows[0] });
+  } catch (error) {
+    console.error('Error creating note:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
 
+// Get all notes for an employee
+app.get('/api/notes/:employee_id', async (req, res) => {
+  const { employee_id } = req.params;
 
+  try {
+    const result = await pool.query(
+      'SELECT * FROM notes WHERE employee_id = $1 ORDER BY created_at DESC',
+      [employee_id]
+    );
+    res.status(200).json({ success: true, notes: result.rows });
+  } catch (error) {
+    console.error('Error fetching notes:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// Delete a note
+app.delete('/api/notes/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const note = await pool.query('SELECT voice_path FROM notes WHERE id = $1', [id]);
+    if (note.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Note not found' });
+    }
+
+    const voicePath = note.rows[0].voice_path;
+    if (voicePath) {
+      const filePath = path.join(__dirname, voicePath);
+      try {
+        await fs.access(filePath); // Check if file exists
+        await fs.unlink(filePath); // Delete the file
+        console.log(`Deleted file: ${filePath}`);
+      } catch (fileError) {
+        console.warn(`File not found or error deleting file: ${filePath}`, fileError);
+      }
+    }
+
+    await pool.query('DELETE FROM notes WHERE id = $1', [id]);
+    res.status(200).json({ success: true, message: 'Note deleted' });
+  } catch (error) {
+    console.error('Error deleting note:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`✅ Server is running on port ${PORT}`);
   console.log(`🌍 API URL: ${API_URL}`);
