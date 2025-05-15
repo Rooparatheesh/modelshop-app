@@ -12,8 +12,8 @@ function AssignTaskPage() {
   const [employees, setEmployees] = useState({});
   const [selectedEmployees, setSelectedEmployees] = useState({});
   const [startDate, setStartDate] = useState("");
-const [endDate, setEndDate] = useState("");
-const [tasks, setTasks] = useState([]); // Define tasks state to store assigned tasks
+   const [endDate, setEndDate] = useState("");
+  const [tasks, setTasks] = useState([]); // Define tasks state to store assigned tasks
 
  
 // Fetch parts based on control number
@@ -249,7 +249,6 @@ const handleAssignTask = async () => {
   
   
   
-  // Employee category colors
   const categoryColors = {
     1: "#0275d8", // Yellow
     2:"#049a8f",
@@ -262,7 +261,7 @@ const handleAssignTask = async () => {
 
   return (
     <section className="content">
-    <div className="content-wrapper">
+    <div className="content-wrapper" style={{ padding: "20px" }}>
       <div className="container mt-4 d-flex gap-4">
           {/* Left Side - Task Assignment Form */}
           <div className="card p-3 col-12 col-md-5">
@@ -272,14 +271,14 @@ const handleAssignTask = async () => {
             {/* Control Number */}
             <label>Control Number <span className="text-danger">*</span></label>
             <input
-  type="text"
-  value={controlNumber}
-  onChange={(e) => {
-    const value = e.target.value;
-    if (/^\d*$/.test(value)) {
-      handleControlNumberChange(e);
-    }
-  }}
+              type="text"
+              value={controlNumber}
+              onChange={(e) => {
+              const value = e.target.value;
+               if (/^\d*$/.test(value)) {
+                   handleControlNumberChange(e);
+                                         }
+                               }}    
   className="form-control mb-2"
 />
             {/* Part Numbers */}
@@ -394,9 +393,6 @@ const handleAssignTask = async () => {
     <strong>Uploaded Document:</strong> {uploadedFile.name}
   </div>
 )}
-    
-  
-
         {/* Assign Button */}
         <button className="btn btn-success mt-3" onClick={handleAssignTask}>
           Assign Task
@@ -431,10 +427,6 @@ const handleAssignTask = async () => {
                 );
               })}
             </div>
-         
-
-
-
             {/* Start & End Date */}
             <div className="mt-2">
               <strong>Start - End Date:</strong> {formatDate(task.startDate)} → {formatDate(task.endDate)}
@@ -454,8 +446,7 @@ const handleAssignTask = async () => {
       </div>
     ))}
   </div>
-
-  {/* Submit Button */}
+{/* Submit Button */}
 {tasks.length > 0 && (
   <button className="btn btn-primary mt-3 float-end" onClick={handleSubmit}>
     Submit
@@ -467,5 +458,4 @@ const handleAssignTask = async () => {
 </section>
   );
 }
-
 export default AssignTaskPage;
