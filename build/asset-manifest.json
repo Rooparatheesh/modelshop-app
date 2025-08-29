@@ -1,0 +1,17 @@
+{
+  "files": {
+    "main.css": "/static/css/main.b39a6235.css",
+    "main.js": "/static/js/main.ad40b365.js",
+    "static/js/488.c2045b43.chunk.js": "/static/js/488.c2045b43.chunk.js",
+    "static/media/icofont.woff": "/static/media/icofont.dad3accba068281878f1.woff",
+    "static/media/icofont.woff2": "/static/media/icofont.9c33516aab48c61e3081.woff2",
+    "index.html": "/index.html",
+    "main.b39a6235.css.map": "/static/css/main.b39a6235.css.map",
+    "main.ad40b365.js.map": "/static/js/main.ad40b365.js.map",
+    "488.c2045b43.chunk.js.map": "/static/js/488.c2045b43.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.b39a6235.css",
+    "static/js/main.ad40b365.js"
+  ]
+}
